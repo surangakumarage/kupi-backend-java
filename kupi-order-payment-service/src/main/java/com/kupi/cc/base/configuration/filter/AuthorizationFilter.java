@@ -1,0 +1,70 @@
+package com.kupi.cc.base.configuration.filter;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import jakarta.servlet.*;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.TimeZone;
+
+@Slf4j
+@WebFilter(urlPatterns = "/api/v1/*")
+public class AuthorizationFilter implements Filter {
+    private static final String TIME_ZONE_HEADER = "Time-Zone";
+    private static final String INVALID_TIME_ZONE = "Invalid time zone.";
+    private static final String AUTH_HEADER = "authorization";
+    private static final String BASIC_PREFIX = "basic";
+    private static final String AUTH_TOKEN = "Auth-Token";
+    private static final String EMPTY_STRING = "";
+    private static final String UID_HEADER = "User-Id";
+    private static final String BEARER_PREFIX = "bearer";
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+            throws IOException, ServletException {
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+
+        var path = request.getRequestURI().substring(request.getContextPath().length()).replaceAll("/+$", EMPTY_STRING);
+        var ignorePath = path.contains(BASIC_PREFIX);
+
+        var timeZone = request.getHeader(TIME_ZONE_HEADER);
+        if (!isValidTimeZone(timeZone)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, INVALID_TIME_ZONE);
+        }
+
+        MutableHttpServletRequest mutableWrapper = new MutableHttpServletRequest(request);
+
+        var token = request.getHeader(AUTH_HEADER);
+        if (ignorePath) {
+            mutableWrapper.putHeader(AUTH_TOKEN, token.toLowerCase().replace(BASIC_PREFIX, EMPTY_STRING).trim());
+        } else {
+            final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            var authUserId = authentication != null ? authentication.getName() : EMPTY_STRING;
+            String processedToken = token.toLowerCase().replace(BEARER_PREFIX, EMPTY_STRING).trim();
+            mutableWrapper.putHeader(UID_HEADER, authUserId);
+            mutableWrapper.putHeader(AUTH_TOKEN, processedToken);
+        }
+        filterChain.doFilter(mutableWrapper, response);
+    }
+
+    /**
+     * Validate the time zone
+     *
+     * @param timeZone timeZone
+     * @return true / false
+     */
+    protected boolean isValidTimeZone(String timeZone) {
+        for (String tzId : TimeZone.getAvailableIDs()) {
+            if (tzId.equals(timeZone)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+}

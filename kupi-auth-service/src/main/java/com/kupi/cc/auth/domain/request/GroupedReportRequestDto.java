@@ -1,0 +1,37 @@
+package com.kupi.cc.auth.domain.request;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class GroupedReportRequestDto extends RequestDto {
+
+    private long startDate;
+    private long endDate;
+
+    @Override
+    public boolean isRequiredAvailable() {
+        return startDate > 0 && endDate > 0;
+    }
+
+    /**
+     * This method checks start and end dates.
+     *
+     * @return true/false
+     */
+    public boolean isValidDateRange() {
+        return startDate <= endDate;
+    }
+
+    /**
+     * This method converts object to json string for logging purpose.
+     * PII data should be obfuscated.
+     *
+     * @return json string
+     */
+    @Override
+    public String toLogJson() {
+        return toJson();
+    }
+}

@@ -1,0 +1,85 @@
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  zipkin:
+    base-url: http://54.254.30.227:9411
+    enabled: false
+  application:
+    name: kupi-otp-service
+    app-key: ${SPRING_APPLICATION_APP_KEY}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8081/oauth/token_key}
+  data:
+    redis:
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      host: ${REDIS_HOST:localhost}
+      timeout: 2000ms
+      jedis:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          shutdown-timeout: 200ms
+
+## Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}
+
+server:
+  port: ${PORT:8082}
+  tomcat:
+    max-threads: 500
+
+ribbon:
+  ReadTimeout: ${RIBBON_TIMEOUT:6000}
+
+notification:
+  enableNotification: ${ENABLE_NOTIFICATION:true}
+auth:
+  baseUrl: ${AUTH_BASE_URL:http://localhost:8081}
+  appKey: ${AUTH_APP_KEY}
+  uri:
+    verifyMobile: /api/v1/users/verification/mobile
+    verifyEmail: /api/v1/users/verification/email
+
+util:
+  utilServiceAppKey: ${UTIL_SERVICE_APP_KEY}
+  baseUrl: ${UTIL_BASE_URL:http://localhost:8085}
+  uri:
+    sendMail: /api/v1/email/send
+    sendSms: /api/v1/sms/send
+
+## Redis Cache
+redis:
+  cache:
+    ttl: ${REDIS_CACHE_TTL:300}
+
+otp:
+  rateLimit:
+    maxAttempts: ${OTP_RATE_LIMIT_MAX_ATTEMPTS:50}
+    blockDurationInSeconds: ${OTP_RATE_LIMIT_BLOCK_DURATION_IN_SECONDS:900}
+
+header:
+  timeZone:
+    header: Time-Zone
+    value: ${TIME_ZONE_VALUE:Asia/Colombo}
+  appKey:
+    header: app-key
+
+accessControl:
+  allowedOrigin: ${ALLOWED_ORIGIN:*}
+
+logging:
+  level:
+    com.kupi.otp: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}

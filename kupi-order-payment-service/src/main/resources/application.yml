@@ -1,0 +1,99 @@
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  application:
+    name: kupi-order-payment-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_BASE_URL:http://localhost:8081}
+  data:
+    redis:
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      host: ${REDIS_HOST:localhost}
+      timeout: 2000ms
+      jedis:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          shutdown-timeout: 200ms
+  cache:
+    redis:
+      time-to-live: ${REDIS_TIME_TO_LIVE:300000}
+
+
+  ## MySql
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kupi_order_payment?createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+      jdbc:
+        time_zone: UTC
+
+server:
+  tomcat:
+    max-threads: 500
+  port: ${PORT:8088}
+
+## Auth-service
+security:
+  oauth2:
+    resource:
+      token-info-uri: ${TOKEN_INFO_URI:http://localhost:8081/oauth/check_token}
+      id: ${RESOURCE_ID:tokomobile}
+    client:
+      client-id: ${CLIENT_ID:tokomobile}
+      client-secret: ${CLIENT_SECRET}
+
+auth:
+  baseUrl: ${AUTH_BASE_URL:http://localhost:8081}
+  appKey: ${AUTH_APP_KEY}
+  uri:
+    getUser: /api/v1/users
+    getBulkMerchantInfo: /api/v1/users/MERCHANT/bulk-info
+
+core:
+  baseUrl: ${CORE_BASE_URL:http://localhost:8084}
+  uri:
+    validateSubscription: /api/v1/subscription-plan/subscribe/validate
+    subscribe: /api/v1/subscription-plan/subscribe
+    unsubscribe: /api/v1/subscription-plan/unsubscribe
+    freeSubscribe: /api/v1/subscription-plan/subscribe/free
+    purchaseCoupon: /api/v1/coupons/deal/##DEAL-ID##
+    subscriptionPlanListUrl: /api/v1/subscription-plan/subscription-plan-count
+    confirmCouponPurchase: /api/v1/coupons/##COUPON-ID##/deal/##DEAL-ID##/status/##STATUS##
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}
+
+paypal:
+  clientId: ${PAYPAL_CLIENT_ID}
+  clientSecret: ${PAYPAL_CLIENT_SECRET}
+  mode: ${PAYPAL_MODE:sandbox}
+
+redirect-uri:
+  subscription:
+    capture: ${SUBSCRIPTION_CAPTURE_URL:https://web-dev.kupi.lk/paymentcomplete}
+    cancel: ${SUBSCRIPTION_CANCEL_URL:https://web-dev.kupi.lk/subscriptions/details/##subscription_plan_id##}
+  coupon:
+    capture: ${COUPON_CAPTURE_URL:https://coupon.complete}
+    cancel: ${COUPON_CANCEL_URL:https://coupon.cancel}
+
+logging:
+  level:
+    com.kupi.cc.com.kupi.cc.base: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}

@@ -1,0 +1,72 @@
+name: PROD-Manual-Phase-1 deploy auth service
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache local Maven repository
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+
+    - name: Build with Maven
+      run: mvn clean install -DskipTests 
+
+    - name: List built JARs
+      run: ls -lh target
+
+    - name: Stop existing service and clean up
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.PROD_SERVER }}
+        username: ${{ secrets.PROD_USERNAME }}
+        port: ${{ secrets.PROD_PORT }}
+        key: ${{ secrets.PROD_PRIVATE_KEY }}
+        script: |
+          echo "Stopping kupi-auth-service if running..."
+          pm2 delete auth-service || echo "No PM2 process found"
+          lsof -i :8081 && kill $(lsof -t -i:8081) || echo "Port 8081 not in use"
+          rm -rf /opt/kupi/auth-service/*
+          
+
+    - name: Copy Artifact via SCP to PROD server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.PROD_SERVER }}
+        username: ${{ secrets.PROD_USERNAME }}
+        port: ${{ secrets.PROD_PORT }}
+        key: ${{ secrets.PROD_PRIVATE_KEY }}
+        source: "target/kupi-auth-service-0.0.1-SNAPSHOT.jar"
+        target: "/opt/kupi/auth-service"
+
+    - name: Start kupi-auth-service on PROD server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.PROD_SERVER }}
+        username: ${{ secrets.PROD_USERNAME }}
+        port: ${{ secrets.PROD_PORT }}
+        key: ${{ secrets.PROD_PRIVATE_KEY }}
+        script: |
+          cd /opt/kupi/auth-service/target
+          export GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PROD }}
+          export DB_URL=${{ secrets.DB_URL_PROD }}
+          export DB_USERNAME=${{ secrets.PROD_DB_USER }}
+          export DB_PASSWORD=${{ secrets.PROD_DB_PASS }}
+          export LOGPATH=/opt/kupi/tmp/logs
+          pm2 start "java -jar kupi-auth-service-0.0.1-SNAPSHOT.jar" --name auth-service || pm2 restart auth-service

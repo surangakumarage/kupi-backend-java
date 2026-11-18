@@ -1,0 +1,91 @@
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  zipkin:
+    base-url: http://54.254.30.227:9411
+    enabled: false
+  application:
+    name: kupi-util-service
+    app-key: ${SPRING_APPLICATION_APP_KEY}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8081/oauth/token_key}
+
+  mail:
+    host: ${SES_SMTP_HOST:email-smtp.HOST.amazonaws.com}
+    port: ${SES_SMTP_PORT:587}
+    username: ${SES_SMTP_USERNAME:USER}
+    password: ${SES_SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: ${SMTP_CONNECT_TIMEOUT_MS:5000}
+          timeout: ${SMTP_READ_TIMEOUT_MS:5000}
+          writetimeout: ${SMTP_WRITE_TIMEOUT_MS:5000}
+aws:
+  config:
+    requestTimeout: ${AWS_REQTIMEOUT:3000}
+    clientTimeout: ${AWS_CLIENTTIMEOUT:5000}
+
+email:
+  sender: ${AWS_EMAIL_SENDER:no-reply-uat@kupi.lk}
+
+sms:
+  # http
+  api:
+    key: ${SMS_API_KEY}
+    token: ${SMS_API_TOKEN}
+    senderId: kupi
+  baseUrl: ${SMS_BASE_URI:https://cloud.websms.lk}
+  uri: /smsAPI?sendsms&apikey=${sms.api.key}&apitoken=${sms.api.token}&type=sms&from=${sms.api.senderId}
+  localCountryCode: ${SMS_LOCAL_COUNTRY_CODE:+94}
+
+  # sns
+  sns:
+    region: ${SNS_REGION:us-east-1}
+    accessKeyId: ${SNS_ACCESS_KEY_ID}
+    secretAccessKey: ${SNS_SECRET_ACCESS_KEY}
+    sessionToken: ${SNS_SESSION_TOKEN:}   # optional
+    senderId: ${SNS_SENDER_ID:Kupi-App}
+    smsType: Transactional
+## Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}
+
+server:
+  port: ${PORT:8085}
+  tomcat:
+    max-threads: 500
+ribbon:
+  ReadTimeout: ${RIBBON_TIMEOUT:6000}
+
+accessControl:
+  allowedOrigin: ${ALLOWED_ORIGIN:*}
+
+whatsapp:
+  token: ${WHATSAPP_TOKEN}
+  baseUrl: ${WHATSAPP_BASE_URL:https://graph.facebook.com/}
+  apiVersion: ${WHATSAPP_API_VERSION:v22.0}
+  phoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID:903240276201988}
+  endpoints:
+    contactsEndpoint: ${WHATSAPP_CONTACTS_ENDPOINT:/contacts}
+    messagesEndpoint: ${WHATSAPP_MESSAGES_ENDPOINT:/messages}
+  template:
+    name: ${WHATSAPP_TEMPLATE_NAME:otp_template}
+    languageCode: ${WHATSAPP_TEMPLATE_LANGUAGE_CODE:en}
+
+logging:
+  level:
+    com.kupi.util: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}

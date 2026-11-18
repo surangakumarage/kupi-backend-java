@@ -1,0 +1,99 @@
+server:
+  port: ${PORT:8080}
+  tomcat:
+    max-threads: 500
+
+eureka:
+  instance:
+    hostname: ${HOST:localhost}
+    preferIpAddress: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: ${EUREKA_ZONE:http://localhost:8761/eureka}
+
+spring:
+  mvc:
+    trailing-slash: true
+  application:
+    name: kupi-api-gateway
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    gateway:
+      # CORS is handled by individual service servlet filters (CorsFilter)
+      # No gateway-level CORS configuration needed (matches Java 11 Zuul behavior)
+      # Note: Gateway passes through OPTIONS (preflight) requests to backend services
+      routes:
+        - id: auth-service
+          uri: lb://kupi-auth-service
+          predicates:
+            - Path=/kupi-auth-service/**
+          filters:
+            - StripPrefix=1
+        - id: otp-service
+          uri: lb://kupi-otp-service
+          predicates:
+            - Path=/kupi-otp-service/**
+          filters:
+            - StripPrefix=1
+        - id: core-service
+          uri: lb://kupi-core-service
+          predicates:
+            - Path=/kupi-core-service/**
+          filters:
+            - StripPrefix=1
+        - id: file-manager-service
+          uri: lb://kupi-file-manager-service
+          predicates:
+            - Path=/kupi-file-manager-service/**
+          filters:
+            - StripPrefix=1
+        - id: util-service
+          uri: lb://kupi-util-service
+          predicates:
+            - Path=/kupi-util-service/**
+          filters:
+            - StripPrefix=1
+        - id: location-service
+          uri: lb://kupi-location-service
+          predicates:
+            - Path=/kupi-location-service/**
+          filters:
+            - StripPrefix=1
+        - id: order-payment-service
+          uri: lb://kupi-order-payment-service
+          predicates:
+            - Path=/kupi-order-payment-service/**
+          filters:
+            - StripPrefix=1
+      # HTTP client configuration
+      httpclient:
+        connect-timeout: 20000
+        response-timeout: 30000ms
+        ssl:
+          useInsecureTrustManager: true
+      # Enable discovery locator for automatic service discovery
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+          include-expression: "serviceId.matches('kupi-.*-service')"
+
+# Management endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,prometheus
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    com.kupi: ${LOG_LEVEL:INFO}
+    org.springframework.cloud.gateway: INFO

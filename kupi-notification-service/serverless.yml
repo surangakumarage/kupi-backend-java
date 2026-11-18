@@ -1,0 +1,197 @@
+frameworkVersion: '>=3'
+service: kupi-notification-service
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  timeout: 30
+  environment:
+    TZ: 'Asia/Colombo'
+    NODE_ENV: ${self:provider.stage}
+    # Database Configuration
+    DATABASE_URL: ${env:DATABASE_URL}
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT, '5432'}
+    DB_NAME: ${env:DB_NAME}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_SSL: ${env:DB_SSL, 'true'}
+    # Push Notification Configuration
+    WHATSAPP_TOKEN: ${env:WHATSAPP_TOKEN, ''}
+    WHATSAPP_PHONE_NUMBER_ID: ${env:WHATSAPP_PHONE_NUMBER_ID, '903240276201988'}
+    WHATSAPP_TEMPLATE_NAME: ${env:WHATSAPP_TEMPLATE_NAME, 'kupi_otp'}
+    WHATSAPP_TEMPLATE_LANGUAGE: ${env:WHATSAPP_TEMPLATE_LANGUAGE, 'en_US'}
+    SMS_LOCAL_COUNTRY_CODE: ${env:SMS_LOCAL_COUNTRY_CODE, '+94'}
+    SMS_API_KEY: ${env:SMS_API_KEY, ''}
+    SMS_API_TOKEN: ${env:SMS_API_TOKEN, ''}
+    # Authentication
+    COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
+    COGNITO_REGION: ${env:COGNITO_REGION, 'us-east-1'}
+    JWT_SECRET: ${env:JWT_SECRET, 'your-fallback-secret'}
+    WEB_URL: ${env:WEB_URL, 'https://portal.kupi.lk'}
+    # Firebase Configuration for Push Notifications
+    FCM_PROJECT_ID: ${env:FCM_PROJECT_ID}
+    FCM_PRIVATE_KEY: ${env:FCM_PRIVATE_KEY}
+    FCM_CLIENT_EMAIL: ${env:FCM_CLIENT_EMAIL}
+
+custom:
+  # TEMPORARILY DISABLED: Requires iam:TagResource permission
+  # stackTags:
+  #   Environment: ${self:provider.stage}
+  #   Service: kupi-notification-service
+  #   s_owner: dev@kupi.lk
+  #   s_expdate: never
+  #   s_project: Kupi
+
+functions:
+  # ===== TEMPLATE MANAGEMENT (ADMIN ONLY) =====
+  getTemplates:
+    handler: src/handlers/templates/get-templates
+    description: GET /notification/templates - Get paginated list of message templates (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/templates
+          method: get
+
+  getTemplate:
+    handler: src/handlers/templates/get-template
+    description: GET /notification/templates/{id} - Get single message template by ID (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/templates/{id}
+          method: get
+
+  createTemplate:
+    handler: src/handlers/templates/create-template
+    description: POST /notification/templates - Create new message template (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/templates
+          method: post
+
+  updateTemplate:
+    handler: src/handlers/templates/update-template
+    description: PUT /notification/templates/{id} - Update existing message template (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/templates/{id}
+          method: put
+
+  deleteTemplate:
+    handler: src/handlers/templates/delete-template
+    description: DELETE /notification/templates/{id} - Delete message template (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/templates/{id}
+          method: delete
+
+  # ===== MESSAGE PROCESSING (ADMIN ONLY) =====
+  processMessage:
+    handler: src/handlers/messages/process-message
+    description: POST /notification/messages/process - Process message template with variables (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/templates/messages/process
+          method: post
+
+  sendNotification:
+    handler: src/handlers/messages/send-notification
+    description: POST /notification/messages/send - Send notification using template (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/templates/messages/send
+          method: post
+
+  # ===== HEALTH CHECK =====
+  healthCheck:
+    handler: src/handlers/health/health-check
+    description: GET /health - Health check endpoint
+    events:
+      - httpApi:
+          path: /api/v3/notification/health
+          method: get
+
+  # ===== SCHEDULED JOBS =====
+  processScheduledTemplates:
+    handler: src/handlers/scheduled/process-scheduled-templates.handler
+    description: Process scheduled notification templates (runs every minute)
+    timeout: 300
+    memorySize: 512
+    events:
+      - schedule:
+          rate: cron(* * * * ? *)  # Every minute
+          enabled: true
+          input:
+            source: "scheduled-template-processor"
+
+  getScheduleAnalytics:
+    handler: src/handlers/scheduled/get-schedule-analytics.handler
+    description: GET /notification/schedule/analytics - Get scheduled template execution analytics (admin only)
+    events:
+      - httpApi:
+          path: /api/v3/notification/schedule/analytics
+          method: get
+
+  # ===== PUSH NOTIFICATION QUEUE SYSTEM =====
+  processFirstRedemptionNudge:
+    handler: src/handlers/push-queue/first-redemption-nudge.handler
+    description: Create first redemption nudge messages for eligible users (runs every 30 minutes)
+    timeout: 300
+    memorySize: 512
+    events:
+      - schedule:
+          rate: cron(*/30 * * * ? *)  # Every 30 minutes
+          enabled: true
+          input:
+            source: "first-redemption-nudge-creator"
+
+  processPushQueue:
+    handler: src/handlers/push-queue/process-push-queue.handler
+    description: Process pending push notifications from queue (runs every 2 minutes)
+    timeout: 600
+    memorySize: 1024
+    events:
+      - schedule:
+          rate: cron(*/2 * * * ? *)  # Every 2 minutes
+          enabled: true
+          input:
+            source: "push-queue-processor"
+
+  cleanupPushQueue:
+    handler: src/handlers/push-queue/cleanup-queue.handler
+    description: Cleanup old push notification queue records (runs daily at 2 AM)
+    timeout: 300
+    memorySize: 256
+    events:
+      - schedule:
+          rate: cron(0 2 * * ? *)  # Daily at 2 AM UTC
+          enabled: true
+          input:
+            source: "push-queue-cleanup"
+
+plugins:
+  - serverless-esbuild
+
+build:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node24
+    platform: node
+    external:
+      - 'pg-native'
+      - '@aws-crypto/*'
+      - '@aws-sdk/*'
+
+package:
+  individually: true
+  patterns:
+    - 'src/**'
+    - '!node_modules/**'
+    - '!*.md'
+    - '!*.json'
+    - '!test/**'

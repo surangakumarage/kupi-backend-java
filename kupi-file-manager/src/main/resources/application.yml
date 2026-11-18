@@ -1,0 +1,102 @@
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  zipkin:
+    base-url: http://54.254.30.227:9411
+    enabled: false
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kupi_filemanager?createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+    initialization-mode:
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        show_sql: true
+        formant_sql: true
+  application:
+    name: kupi-file-manager-service
+    api-key: ${SPRING_APPLICATION_APP_KEY}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_BASE_URL:http://localhost:8081}
+
+  ## This should be added to API gateway level
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: ${PORT:8083}
+
+## Eureka
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}
+
+## Auth-service
+security:
+  oauth2:
+    resource:
+      token-info-uri: ${TOKEN_INFO_URI:http://localhost:8081/oauth/check_token}
+      id: ${RESOURCE_ID:tokomobile}
+    client:
+      client-id: ${CLIENT_ID:tokomobile}
+      client-secret: ${CLIENT_SECRET}
+
+## AWS
+aws:
+  bucket:
+    name: ${AWS_BUCKET_NAME:objects-kupi-dev}
+    paths:
+      coupon: ${COUPON_PATH:/coupon_uploads}
+  region: ${AWS_REGION:ap-southeast-1}
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+
+do:
+  access-key: ${DO_ACCESS_KEY}
+  secret-key: ${DO_SECRET_KEY}
+  region: ${DO_REGION:syd1}
+  endpoint: ${DO_ENDPOINT:https://kupi.syd1.digitaloceanspaces.com}
+
+
+## App values
+image:
+  maxByteSize: ${IMAGE_MAX_SIZE:10000000}
+
+csv:
+  maxByteSize: ${CSV_MAX_SIZE:10000000}
+
+file:
+  storage:
+    provider: ${STORAGE_PROVIDER:do}
+  maxByteSize: ${FILE_MAX_SIZE:10000000}
+  types: ${FILE_TYPES:text/csv,application/pdf,audio/mpeg,video/mp4,image/jpeg,image/png,text/html}
+  count: ${MAX_FILE_COUNT:10}
+
+ribbon:
+  ReadTimeout: ${RIBBON_TIMEOUT:6000}
+
+accessControl:
+  allowedOrigin: ${ALLOWED_ORIGIN:*}
+
+logging:
+  level:
+    com.kupi.fileuploader: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}

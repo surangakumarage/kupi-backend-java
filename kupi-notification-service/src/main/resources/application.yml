@@ -1,0 +1,57 @@
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  application:
+    name: kupi-notification-service
+    app-key: ${SPRING_APPLICATION_APP_KEY}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_BASE_URL:http://localhost:8081}
+  ## MySql
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kupi_notification?createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: ${PORT:8086}
+  tomcat:
+    max-threads: 500
+
+## Auth-service
+security:
+  oauth2:
+    resource:
+      token-info-uri: ${TOKEN_INFO_URI:http://localhost:8081/oauth/check_token}
+      id: ${RESOURCE_ID:tokomobile}
+    client:
+      client-id: ${CLIENT_ID:tokomobile}
+      client-secret: ${CLIENT_SECRET}
+auth:
+  baseUrl: ${AUTH_BASE_URL:http://localhost:8081}
+  uri:
+    getUser: /api/v1/users
+
+firebase:
+  databaseUrl: ${FIREBASE_URL:https://soy-academy-286104.firebaseio.com/}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}
+
+logging:
+  level:
+    com.kupi.notification: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}

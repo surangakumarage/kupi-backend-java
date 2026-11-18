@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: eureka-discovery-service
+
+logging:
+  level:
+    com.tokoin.discoveryservice: DEBUG
+  file:
+    path: ${LOGPATH:/home/ubuntu/tmp/logs}

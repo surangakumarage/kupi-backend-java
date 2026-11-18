@@ -1,0 +1,101 @@
+server:
+  port: ${PORT:8081}
+  tomcat:
+    max-threads: 500
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  zipkin:
+    base-url: http://54.254.30.227:9411
+    enabled: false
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kupi_auth?createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+    initialization-mode:
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        show_sql: true
+        formant_sql: true
+  application:
+    name: kupi-auth-service
+    app-key: ${SPRING_APPLICATION_APP_KEY}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8081/oauth/token_key}
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:28788601269-i9fl07mrcem1plph4i58l66m1mmnm28s.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+
+application:
+  client-id: ${CLIENT_ID:tokomobile}
+  token-validity: ${TOKEN_VALIDITY}
+
+auth:
+  basic-token: ${AUTH_BASIC_TOKEN}
+
+core:
+  baseUrl: ${CORE_BASE_URL:http://localhost:8084}
+  uri:
+    assignDefaultSubscription: /api/v1/user-subscription/assign-default
+  appKey: ${AUTH_APP_KEY}
+
+email:
+  password-reset:
+    url: ${PASSWORD_RESET_URL:http://localhost:8082/otp-service/api/v1/email/send}
+    api-key: ${MAIL_API_KEY}
+    link: ${PASSWORD_RESET_LINK:http://localhost:4000/password/reset/{token}
+
+## Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}
+
+ribbon:
+  ReadTimeout: ${RIBBON_TIMEOUT:6000}
+
+googleAnalytics:
+  propertyId: ${ANALYTICS_PROPERTY_ID:289610618}
+  pageSize: ${PAGE_SIZE:10}
+
+notification:
+  enableNotification: ${ENABLE_NOTIFICATION:false}
+
+util:
+  utilServiceAppKey: ${UTIL_SERVICE_APP_KEY}
+  baseUrl: ${UTIL_BASE_URL:http://localhost:8085}
+  uri:
+    sendMail: /api/v1/email/send
+    sendSms: /api/v1/sms/send
+
+accessControl:
+  allowedOrigin: ${ALLOWED_ORIGIN:*}
+
+oauth:
+  uri: ${AUTH_BASE_URL:http://localhost:8081/oauth/token}
+  basicToken: ${OAUTH_BASIC_TOKEN}
+
+logging:
+  level:
+    com.kupi.cc.auth: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}
+
+otp:
+  dummy:
+    enabled: ${OTP_DUMMY_ENABLED:true}
+    phone-number: ${OTP_DUMMY_PHONE_NUMBER:+1 416 555 5555}
+    code: ${OTP_DUMMY_CODE:123456}

@@ -1,0 +1,21 @@
+package com.kupi.notification.configuration;
+
+import com.kupi.notification.util.TokenEncoder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class NotificationServiceConfigurations {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
+    public TokenEncoder tokenEncoder() {
+        return new TokenEncoder();
+    }
+
+}

@@ -1,0 +1,108 @@
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  application:
+    name: kupi-location-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_BASE_URL:http://localhost:8081}
+  ## MySql
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kupi_location?createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+
+  ## Redis (Using Jedis for Java 21 compatibility) - Spring Boot 3.x format
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      jedis:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          shutdown-timeout: 200ms
+server:
+  port: ${PORT:8087}
+  tomcat:
+    max-threads: 500
+
+## Auth-service
+security:
+  oauth2:
+    resource:
+      token-info-uri: ${TOKEN_INFO_URI:http://localhost:8081/oauth/check_token}
+      id: ${RESOURCE_ID:tokomobile}
+    client:
+      client-id: ${CLIENT_ID:tokomobile}
+      client-secret: ${CLIENT_SECRET}
+auth:
+  baseUrl: ${AUTH_BASE_URL:http://localhost:8081}
+  appKey: ${AUTH_APP_KEY}
+  uri:
+    getUser: /api/v1/users
+    getBulkMerchantInfo: /api/v1/users/##TO-USER-TYPE##/bulk-info
+    getPreferredMerchant: /api/v1/preferred-merchants/internal
+
+## Core-service
+core:
+  baseUrl: ${CORE_BASE_URL:http://localhost:8084}
+  getBulkDealInfo: /api/v1/deals/bulk-info
+  getDealsByIds: /api/v1/deals/by-ids
+  getBulkCategories: /api/v1/MERCHANT/bulk-categories
+  getRecentlyExpireDeals: /api/v1/deals/recently-expire
+  getDealsOfTheDay: /api/v1/deals/deals-of-the-day
+  getMerchantSize: ${CORE_MERCHANT_SIZE:20}
+
+## Notification-service
+notification:
+  baseUrl: ${NOTIFICATION_BASE_URL:http://localhost:3000}
+  pushNotification: /api/v3/notifications/push
+  enableNotification: ${ENABLE_NOTIFICATION:false}
+
+## Google-service
+google:
+  pubsub:
+    project: ${PROJECT:kupi-dev}
+    topic: ${SUBSCRIPTION:user-location-updates-sub}
+
+## Redis Cache
+redis:
+  cache:
+    ttl: ${REDIS_CACHE_TTL:3600}
+
+location:
+  movement-threshold-km: ${MOVEMENT_THRESHOLD_KM:2.0}
+  search-radius-km: ${SEARCH_RADIUS_KM:2.0}
+  deals-search-radius-km: ${DEALS_SEARCH_RADIUS_KM:5}
+
+## Util-service
+util:
+  utilServiceAppKey: ${UTIL_SERVICE_APP_KEY}
+  baseUrl: ${UTIL_BASE_URL:http://localhost:8085}
+  uri:
+    sendMail: /api/v1/email/send
+
+logging:
+  level:
+    com.kupi.cc.location: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}

@@ -1,0 +1,36 @@
+# Build output
+target/
+*.class
+*.jar
+!**/.mvn/wrapper/maven-wrapper.jar
+
+# Secrets: keep real values in .env, commit only .env.example
+.env
+.env.*
+!.env.example
+firebase-service-account-key.json
+*.p12
+*.pem
+*.jks
+
+# Logs and runtime data
+*.log
+LOG_PATH_IS_UNDEFINED/
+logs/
+mysql/
+db_dump/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Backups
+*.bak
+*.bak2
+*.orig
+
+# Local tool settings
+.claude/

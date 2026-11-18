@@ -1,0 +1,134 @@
+spring:
+  mvc:
+    trailing-slash: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  application:
+    name: kupi-core-service
+    app-key: ${SPRING_APPLICATION_APP_KEY}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8081/oauth/token_key}
+  ## MySql
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kupi_core?createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+  batch:
+    job:
+      enabled: false
+    initialize-schema: always
+stripe:
+  secret:
+    key: ${STRIPE_SECRET_KEY}
+  successUrl: ${STRIPE_SUCCESS_URL:http://localhost:3000/success}
+  errorUrl: ${STRIPE_ERROR_URL:http://localhost:3000/failed}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET}
+
+server:
+  tomcat:
+    max-threads: 500
+  port: ${PORT:8084}
+
+## Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEFAULT_ZONE:http://localhost:8761/eureka}
+
+## Auth-service
+security:
+  oauth2:
+    resource:
+      token-info-uri: ${TOKEN_INFO_URI:http://localhost:8081/oauth/check_token}
+      id: ${RESOURCE_ID:tokomobile}
+    client:
+      client-id: ${CLIENT_ID:tokomobile}
+      client-secret: ${CLIENT_SECRET}
+auth:
+  baseUrl: ${AUTH_BASE_URL:http://localhost:8081}
+  appKey: ${AUTH_APP_KEY}
+  uri:
+    getUser: /api/v1/users
+    getBulkMerchantInfo: /api/v1/users/##TO-USER-TYPE##/bulk-info
+    getBulkUserInfo: /api/v1/users/bulk-info
+    getMerchantInfo: /api/v1/users/MERCHANT/business/merchant/##MERCHANT-ID##/APPROVED
+    getBankInfo: /api/v1/users/BANK/business/merchant/##BANK-ID##/APPROVED
+    getTodaySummary: /api/v1/summary/##TO-USER-TYPE##
+    getMerchantApiAccessKey: /api/v1/users/get-api-access-key/MERCHANT/##MERCHANT-ID##
+    getAllMerchants: /api/v1/users/MERCHANT/##PAGE##/##SIZE##/search/##SEARCH##
+    getSliderImages: /api/v1/users/MERCHANT/business/slider-images/internal/##MERCHANT-ID##
+    getBulkSliderImages: /api/v1/users/MERCHANT/business/slider-images/internal/bulk
+
+analytics:
+  propertyId: ${ANALYTICS_PROPERTY_ID:289610618}
+  topViewsCount: ${TOP_VIEWS_COUNT:10}
+
+notification:
+  enableNotification: ${ENABLE_NOTIFICATION:false}
+
+util:
+  utilServiceAppKey: ${UTIL_SERVICE_APP_KEY}
+  baseUrl: ${UTIL_BASE_URL:http://localhost:8085}
+  uri:
+    sendMail: /api/v1/email/send
+    sendSms: /api/v1/sms/send
+
+accessControl:
+  allowedOrigin: ${ALLOWED_ORIGIN:*}
+
+dealsOfTheDayEvent:
+  dealLimit: ${TOTAL_DEALS:15}
+  schedule: ${SCHEDULE_TIME:0 0 * * * *}
+
+dataUpdateScheduler:
+  size: 250
+  cron: 0 0 0 * * *
+
+subscription:
+  renewalCron: ${SUBSCRIPTION_RENEWAL_CRON:0 0 * * * *}
+
+  ## Generating-deal-code.
+  ## eg:-
+  ##bank_deal_code  : DLB-2202151204
+  ##merchant_deal_code  : DLM-2202151205
+dealCode:
+  dealCodeFormat: DL#-YYMMDD$$$$
+
+couponsUpload:
+  csv:
+    saveLocation: ${SAVE_LOCATION:/tmp/csv/}
+  dealExpiryDateValidationDateGap: ${DATE_GAPS:0}
+
+coupon:
+  # Cron for updating remaining coupon counts based on expiry (default: every 15 minutes)
+  expiryUpdateCron: ${COUPON_EXPIRY_UPDATE_CRON:0 */15 * * * *}
+
+deal:
+  # Number of days ahead to consider for recently expiring deals (default: 1 day)
+  recentlyExpireDaysAhead: ${RECENTLY_EXPIRE_DAYS_AHEAD:1}
+
+userSubscription:
+  free-plan-name: ${USER_FREE_PLAN:Welcome Offer}
+  default-plan-name: ${DEFAULT_PLAN_NAME:Welcome Offer}
+
+activity-log:
+  days-to-show: ${ACTIVITY_LOG_DAYS_TO_SHOW:50}
+
+totalSavings:
+  cron: ${TOTAL_SAVINGS_CRON:0 0 * * * *}
+
+logging:
+  level:
+    com.kupi.cc.base: ${LOG_LEVEL:DEBUG}
+  file:
+    path: ${LOGPATH:/tmp/logs}
