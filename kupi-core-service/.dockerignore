@@ -1,0 +1,3 @@
+# Only the built jar goes into the image (keeps .env and sources out)
+*
+!target/*.jar
