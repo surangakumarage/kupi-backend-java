@@ -15,6 +15,8 @@ Spring Boot 3.5 / Java 21 microservices for the Kupi deals platform.
 | File manager | `kupi-file-manager` |
 | Util (mail, SMS) | `kupi-util-service` |
 
+Full list of HTTP endpoints for every service: **[ENDPOINTS.md](ENDPOINTS.md)**.
+
 ## Setup
 
 Secrets are not committed. Each service reads them from environment variables.
